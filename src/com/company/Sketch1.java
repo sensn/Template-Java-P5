@@ -3,16 +3,24 @@ import controlP5.ControlEvent;
 import controlP5.ControlP5;
 import processing.core.PApplet;   //Download processing add
 import processing.core.PSurface;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiUnavailableException;
+import java.io.IOException;
+
 public class Sketch1 extends PApplet {
 
     Sketch2 sketch2;        //create instance of other sketch so they know of each other 
     ControlP5 cp5;
 
+    IShedMidi shedMidi;
+
     int sliderValue = 100;      // for cp5 demo
     int myColorBackground = color(128);
     
-    public Sketch1() {          //Constructor - super() calls Constructor of Parent Class (here PApplet)
+    public Sketch1() throws MidiUnavailableException, InvalidMidiDataException, IOException {          //Constructor - super() calls Constructor of Parent Class (here PApplet)
         super();
+        shedMidi= new MShedMidi();
     }
 
     public void runIt() {
@@ -20,8 +28,12 @@ public class Sketch1 extends PApplet {
     }
 
 
-    public void setOtherWindowRef(Sketch2 refOtherWin) {
+    public void setOtherWindowRef(Sketch2 refOtherWin) {           // Setter Injection
         sketch2 = refOtherWin;
+    }
+
+    public void setIShedMidiRef(IShedMidi theShedMidi) {          // Setter Injection
+        shedMidi = theShedMidi;
     }
 
     public void settings() {                  //neede for Processing in Java gets called before setuo()
@@ -39,6 +51,7 @@ public class Sketch1 extends PApplet {
         // frameRate(60);
         surface.setResizable(true);
         this.surface.setTitle("*** MGA MUSIC SKETCH 1 ***");
+        this.surface.setLocation(150,150);
         gui();
     }
 
@@ -85,6 +98,7 @@ public class Sketch1 extends PApplet {
                 .setSize(80, 40)
                 .setValue(1)
                 .setBroadcast(true)
+                .setLabel("Note on!")
                 .getCaptionLabel().align(CENTER, CENTER)
 
         ;
@@ -131,7 +145,7 @@ public class Sketch1 extends PApplet {
         if (theControlEvent.isTab()) {
             println("got an event from tab : " + theControlEvent.getTab().getName() + " with id " + theControlEvent.getTab().getId());
         }
-//      println("got an EVENT : "+theControlEvent.getTab().getName()+" with id "+theControlEvent.getTab().getId());
+  //   println("got an EVENT : "+theControlEvent.getTab().getName()+" with id "+theControlEvent.getTab().getId());
     }
 
     public void tempoSlider(int theTempo) {
@@ -142,10 +156,17 @@ public class Sketch1 extends PApplet {
 
     }
 
+    public void button(){
+        println("ButtonPressed Send Note!" );
+        shedMidi.sendMidi(64,100,0);
+    }
+
+
 
     public void keyPressed() {
         if (keyCode == TAB) {
             cp5.getTab("extra").bringToFront();
+            shedMidi.sendMidi(64, 100, 0);
         }
     }
 
